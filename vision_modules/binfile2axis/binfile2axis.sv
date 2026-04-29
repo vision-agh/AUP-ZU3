@@ -15,8 +15,8 @@ module binfile2axis #(
     localparam BYTES_CNT_WIDTH = $clog2(total_bytes) + 1
 )
 (
-  //hdmi outputs
-  output reg clk,
+  input logic clk,
+  input logic resetn,
   
   //master axis interface
   output reg [(PARALLEL_BYTES * 8) - 1 : 0] m_axis_0_tdata = 0,
@@ -25,15 +25,6 @@ module binfile2axis #(
   output reg [BYTES_CNT_WIDTH - 1 : 0] bytes_cnt = 0
 ); 
 
-
-initial
-begin
-  while(1)
-  begin
-      #1 clk=1'b0;
-	    #1 clk=1'b1;
-  end
-end  
 
 reg read_file = 1;
 integer file;
@@ -65,7 +56,14 @@ end
 
 always @(posedge clk)
 begin
-    if(read_file == 1 && sent < TO_SEND)
+    if(!resetn) begin
+      m_axis_0_tdata <= 0;
+      m_axis_0_tvalid <= 0;
+      bytes_cnt <= 0;
+      read_file <= 1;
+      sent = 0;
+    end
+    else if(read_file == 1 && sent < TO_SEND)
     begin  
 
         if(TO_SEND > 1)

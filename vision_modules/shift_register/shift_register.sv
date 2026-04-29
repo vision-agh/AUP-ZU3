@@ -1,6 +1,6 @@
 module shift_register #(
     parameter WIDTH = 8,
-    parameter DELAY = 4
+    parameter DELAY = 128000
 )
 (
     input  logic clk,
@@ -15,6 +15,7 @@ module shift_register #(
     typedef logic [$clog2(DEPTH) - 1 : 0]   ptr_t;
     typedef logic [WIDTH - 1 : 0]           data_t;
 
+    (* ram_style = "block" *)
     data_t  mem [DEPTH];
     ptr_t   wr_ptr = 0;
     ptr_t   rd_ptr = 1;

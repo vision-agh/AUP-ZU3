@@ -37,7 +37,6 @@ localparam X_CNT_WIDTH = $clog2(in_features_width);
 localparam Y_CNT_WIDTH = $clog2(in_features_height);
 
 
-wire clk;
 wire [packet_width - 1 : 0] features_m_axis_tdata;
 wire features_m_axis_tvalid;
 wire features_m_axis_tready;
@@ -55,9 +54,15 @@ begin
     resetn <= 1;
 end
 
+logic clk = 0;
+always begin
+    #1
+    clk = !clk;
+end
+
 
 binfile2axis #(
-    .IMG_PATH("../../../../../bytearray.bin"),
+    .IMG_PATH("../../../../../bytearray.bin"), //paths are relative to <project_directory>/<project_name>.sim/sim_1/behav/xsim/
     .FOLDING(folding),
     .height(in_features_height),
     .width(in_features_width),
@@ -66,7 +71,7 @@ binfile2axis #(
     .TO_SEND(1)
 )
 file_input (
-    .clk(clk),
+    .clk, .resetn,
     .m_axis_0_tdata(features_m_axis_tdata),
     .m_axis_0_tvalid(features_m_axis_tvalid),
     .m_axis_0_tready(features_m_axis_tready),

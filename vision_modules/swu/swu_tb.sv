@@ -26,8 +26,6 @@ module swu_tb;
     logic [packet_width - 1 : 0] features_m_axis_tdata;
     logic features_m_axis_tvalid;
     logic features_m_axis_tready;
-    logic [$clog2(IMG_H) - 1 : 0] y_cnt = 0;
-    logic [$clog2(IMG_W) - 1 : 0] x_cnt = 0;
 
     binfile2axis #(
         .IMG_PATH("../../../../../bytearray.bin"), //paths are relative to <project_directory>/<project_name>.sim/sim_1/behav/xsim/
@@ -44,14 +42,6 @@ module swu_tb;
         .m_axis_0_tvalid(features_m_axis_tvalid),
         .m_axis_0_tready(features_m_axis_tready)
     );
-
-    always @(posedge clk) begin
-        if(features_m_axis_tvalid && features_m_axis_tready) begin
-            x_cnt <= (x_cnt == IMG_W - 1) ? 0 : x_cnt + 1;
-            if(x_cnt == IMG_W - 1)
-                y_cnt <= (y_cnt == IMG_H - 1) ? 0 : y_cnt + 1;
-        end
-    end
 
     logic [DATA_W - 1 : 0] window_m_axis_tdata [WINDOW_H][WINDOW_W];
     logic window_m_axis_tvalid;

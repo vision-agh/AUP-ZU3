@@ -29,6 +29,7 @@ localparam in_features_width = 1280;
 localparam channels = 3;
 localparam folding = 1;
 localparam datawidth = 8;
+localparam RANDOM_INTERRUPTS = 0;
 
 localparam channels_per_packet = (channels / folding);
 localparam packet_width = channels_per_packet * datawidth;
@@ -68,7 +69,8 @@ binfile2axis #(
     .width(in_features_width),
     .channels(channels),
     .datawidth(datawidth),
-    .TO_SEND(1)
+    .TO_SEND(1),
+    .RANDOM_INTERRUPTS(RANDOM_INTERRUPTS)
 )
 file_input (
     .clk, .resetn,

@@ -15,17 +15,18 @@ module swu #(
 
     output  logic [IN_W - 1 : 0]        m_axis_tdata [WINDOW_H][WINDOW_W],
     output  logic                       m_axis_tvalid,
-    input   logic                       m_axis_tready
+    input   logic                       m_axis_tready,
+    output  logic                       m_axis_tlast
 );
 
     wire                    line_buffer_shift_en = s_axis_tvalid && s_axis_tready;
-    logic                   line_buffer_shift_en_del1;
     logic [IN_W - 1 : 0]    line_buffer_inputs  [WINDOW_H - 1];
     logic [IN_W - 1 : 0]    line_buffer_outputs [WINDOW_H - 1];  
     logic [IN_W - 1 : 0]    window [WINDOW_H][WINDOW_W];
     logic [$clog2(H) - 1 : 0] y_cnt = 0;
     logic [$clog2(W) - 1 : 0] x_cnt = 0;
     logic                   Vld = 0;
+    logic                   Lst = 0;
 
     for(genvar i = 0; i < WINDOW_H - 1; i++) begin
         assign line_buffer_inputs[i] = window[i][WINDOW_W - 1];
@@ -44,6 +45,8 @@ module swu #(
         if(!resetn) begin
             x_cnt <= 0;
             y_cnt <= 0;
+            Vld <= 0;
+            Lst <= 0;
         end
 
         else begin
@@ -65,8 +68,13 @@ module swu #(
                 if(x_cnt == W - 1)
                     y_cnt <= (y_cnt == H - 1) ? 0 : y_cnt + 1;
 
-                if(x_cnt >= (WINDOW_W - 1) && x_cnt <= (W - 1) && y_cnt >= (WINDOW_H - 1) && y_cnt <= (H - 1))
+                if(x_cnt >= (WINDOW_W - 1) && x_cnt <= (W - 1) && y_cnt >= (WINDOW_H - 1) && y_cnt <= (H - 1)) begin
                     Vld <= 1;
+                    if(x_cnt == (W - 1) && y_cnt == (H - 1))
+                        Lst <= 1;
+                    else
+                        Lst <= 0;
+                end
                 else
                     Vld <= 0;
             end
@@ -86,5 +94,6 @@ module swu #(
     // assign m_axis_tvalid =  x_cnt >= (WINDOW_W - 1) && x_cnt <= (W - 1) &&
     //                         y_cnt >= (WINDOW_H - 1) && y_cnt <= (H - 1);
     assign m_axis_tvalid = Vld;
+    assign m_axis_tlast = Vld && Lst;
 
 endmodule: swu

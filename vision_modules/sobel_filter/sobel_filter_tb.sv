@@ -1,4 +1,4 @@
-module swu_tb;
+module sobel_filter_tb;
 
     localparam IMG_H = 720;
     localparam IMG_W = 1280;
@@ -7,9 +7,6 @@ module swu_tb;
     localparam CHANNELS = 3;
     localparam channels_per_packet = (CHANNELS / FOLDING);
     localparam packet_width = channels_per_packet * DATA_W;
-
-    localparam WINDOW_H = 3;
-    localparam WINDOW_W = 3;
 
     logic resetn = 0;
     initial
@@ -26,8 +23,6 @@ module swu_tb;
     logic [packet_width - 1 : 0] features_m_axis_tdata;
     logic features_m_axis_tvalid;
     logic features_m_axis_tready;
-    logic [$clog2(IMG_H) - 1 : 0] y_cnt = 0;
-    logic [$clog2(IMG_W) - 1 : 0] x_cnt = 0;
 
     binfile2axis #(
         .IMG_PATH("../../../../../bytearray.bin"), //paths are relative to <project_directory>/<project_name>.sim/sim_1/behav/xsim/
@@ -46,37 +41,27 @@ module swu_tb;
         .m_axis_0_tready(features_m_axis_tready)
     );
 
-    logic [DATA_W - 1 : 0] window_m_axis_tdata [WINDOW_H][WINDOW_W];
-    logic window_m_axis_tvalid;
-    logic window_m_axis_tready;
-    logic window_m_axis_tlast;
+    logic [DATA_W - 1 : 0] sobel_filter_m_axis_tdata;
+    logic sobel_filter_m_axis_tvalid;
+    logic sobel_filter_m_axis_tready;
 
-    // send only R channel to the swu
-    swu #(
-        .WINDOW_H(WINDOW_H), .WINDOW_W(WINDOW_W),
+    // send only R channel to the sobel_filter
+    sobel_filter #(
         .H(IMG_H), .W(IMG_W),
-        .IN_W(DATA_W)
+        .DATA_W(DATA_W)
     ) dut (
         .clk, .resetn,
         .s_axis_tdata(features_m_axis_tdata[packet_width - 1 -: DATA_W]), .s_axis_tvalid(features_m_axis_tvalid), .s_axis_tready(features_m_axis_tready),
-        .m_axis_tdata(window_m_axis_tdata), .m_axis_tvalid(window_m_axis_tvalid), .m_axis_tready(window_m_axis_tready), .m_axis_tlast(window_m_axis_tlast)
+        .m_axis_tdata(sobel_filter_m_axis_tdata), .m_axis_tvalid(sobel_filter_m_axis_tvalid), .m_axis_tready(sobel_filter_m_axis_tready)
     );
-
-    always @(posedge clk) begin
-        if(window_m_axis_tvalid && window_m_axis_tready) begin
-            x_cnt <= (x_cnt == IMG_W - WINDOW_W) ? 0 : x_cnt + 1;
-            if(x_cnt == IMG_W - WINDOW_W)
-                y_cnt <= (y_cnt == IMG_H - WINDOW_H) ? 0 : y_cnt + 1;
-        end
-    end
 
     initial begin
         forever begin
-            window_m_axis_tready <= 0;
+            sobel_filter_m_axis_tready <= 0;
             while($urandom()%20 == 0) @(posedge clk);
-            window_m_axis_tready <= 1;
+            sobel_filter_m_axis_tready <= 1;
             @(posedge clk);
         end
     end
 
-endmodule: swu_tb
+endmodule: sobel_filter_tb

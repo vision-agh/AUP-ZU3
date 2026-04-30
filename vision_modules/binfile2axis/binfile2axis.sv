@@ -47,20 +47,21 @@ initial begin
         file = $fopen(filepath,"rb");
         
         for(int unsigned bytes_cnt = 0; bytes_cnt < TOTAL_BYTES; bytes_cnt += PARALLEL_BYTES) begin
+            m_axis_0_tdata <= 'x;
+            m_axis_0_tvalid <= 0;
             if(RANDOM_INTERRUPTS)
                 while($urandom() % ONE_IN_X_INTERRUPT_CHANCE == 0) @(posedge clk);
+
             for(integer i = 0; i < PARALLEL_BYTES; i = i + 1)
                 m_axis_0_tdata[(PARALLEL_BYTES-i)*8 - 1 -: 8] <= $fgetc(file);
             m_axis_0_tvalid <= 1;
-
             @(posedge clk iff m_axis_0_tready);
-            m_axis_0_tdata <= 'x;
-            m_axis_0_tvalid <= 0;
         end
+
+        m_axis_0_tvalid <= 0;
     end
 end
 
-// assign m_axis_0_tvalid = !skip_header;
 
 endmodule
 

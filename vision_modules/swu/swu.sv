@@ -79,7 +79,7 @@ module swu #(
                     Vld <= 0;
             end
 
-            if(!s_axis_tvalid && Vld)
+            if(!s_axis_tvalid && m_axis_tready)
                 Vld <= 0;
         end
     end
@@ -91,8 +91,6 @@ module swu #(
         end
     end
     assign s_axis_tready = m_axis_tready;
-    // assign m_axis_tvalid =  x_cnt >= (WINDOW_W - 1) && x_cnt <= (W - 1) &&
-    //                         y_cnt >= (WINDOW_H - 1) && y_cnt <= (H - 1);
     assign m_axis_tvalid = Vld;
     assign m_axis_tlast = Vld && Lst;
 

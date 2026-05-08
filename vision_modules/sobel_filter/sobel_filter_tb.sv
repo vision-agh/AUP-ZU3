@@ -25,7 +25,7 @@ module sobel_filter_tb;
     logic features_m_axis_tready;
 
     binfile2axis #(
-        .IMG_PATH("../../../../../bytearray.bin"), //paths are relative to <project_directory>/<project_name>.sim/sim_1/behav/xsim/
+        .IMG_PATH("../../../../../binarray_dummy.bin"), //paths are relative to <project_directory>/<project_name>.sim/sim_1/behav/xsim/
         .FOLDING(FOLDING),
         .height(IMG_H),
         .width(IMG_W),
@@ -61,6 +61,17 @@ module sobel_filter_tb;
             while($urandom()%20 == 0) @(posedge clk);
             sobel_filter_m_axis_tready <= 1;
             @(posedge clk);
+        end
+    end
+
+
+    logic [$clog2(IMG_H) - 1 : 0] y_cnt = 0;
+    logic [$clog2(IMG_W) - 1 : 0] x_cnt = 0;
+    always @(posedge clk) begin
+        if(sobel_filter_m_axis_tvalid && sobel_filter_m_axis_tready) begin
+            x_cnt <= (x_cnt == IMG_W - 3) ? 0 : x_cnt + 1;
+            if(x_cnt == IMG_W - 3)
+                y_cnt <= (y_cnt == IMG_H - 3) ? 0 : y_cnt + 1;
         end
     end
 

@@ -73,28 +73,34 @@ module sobel_filter #(
     logic [1 : SUMMATION_PIPELINE_DEPTH] data_valid_chain = 0;
 
     always_ff @(posedge clk) begin
-        // pipeline stage 1
-        summation_x_stage1[0] <= weighted_context_x[0][0] + weighted_context_x[0][2];
-        summation_x_stage1[1] <= weighted_context_x[1][0] + weighted_context_x[1][2];
-        summation_x_stage1[2] <= weighted_context_x[2][0] + weighted_context_x[2][2];
+        if(!resetn) begin
+            data_valid_chain <= 0;
+        end
 
-        summation_y_stage1[0] <= weighted_context_y[0][0] + weighted_context_y[2][0];
-        summation_y_stage1[1] <= weighted_context_y[0][1] + weighted_context_y[2][1];
-        summation_y_stage1[2] <= weighted_context_y[0][2] + weighted_context_y[2][2];
+        else if(m_axis_tready) begin
+            // pipeline stage 1
+            summation_x_stage1[0] <= weighted_context_x[0][0] + weighted_context_x[0][2];
+            summation_x_stage1[1] <= weighted_context_x[1][0] + weighted_context_x[1][2];
+            summation_x_stage1[2] <= weighted_context_x[2][0] + weighted_context_x[2][2];
 
-        // pipeline stage 2
-        summation_x_stage2[0] <= summation_x_stage1[0] + summation_x_stage1[1];
-        summation_x_stage2[1] <= summation_x_stage1[2];
+            summation_y_stage1[0] <= weighted_context_y[0][0] + weighted_context_y[2][0];
+            summation_y_stage1[1] <= weighted_context_y[0][1] + weighted_context_y[2][1];
+            summation_y_stage1[2] <= weighted_context_y[0][2] + weighted_context_y[2][2];
 
-        summation_y_stage2[0] <= summation_y_stage1[0] + summation_y_stage1[1];
-        summation_y_stage2[1] <= summation_y_stage1[2];
+            // pipeline stage 2
+            summation_x_stage2[0] <= summation_x_stage1[0] + summation_x_stage1[1];
+            summation_x_stage2[1] <= summation_x_stage1[2];
 
-        // pipeline stage 3
-        gradient_x <= summation_x_stage2[0] + summation_x_stage2[1];
-        gradient_y <= summation_y_stage2[0] + summation_y_stage2[1];
+            summation_y_stage2[0] <= summation_y_stage1[0] + summation_y_stage1[1];
+            summation_y_stage2[1] <= summation_y_stage1[2];
 
-        // delay valid signal
-        data_valid_chain <= {context_m_axis_tvalid, data_valid_chain[1 : SUMMATION_PIPELINE_DEPTH - 1]};
+            // pipeline stage 3
+            gradient_x <= summation_x_stage2[0] + summation_x_stage2[1];
+            gradient_y <= summation_y_stage2[0] + summation_y_stage2[1];
+
+            // delay valid signal
+            data_valid_chain <= {context_m_axis_tvalid, data_valid_chain[1 : SUMMATION_PIPELINE_DEPTH - 1]};
+        end
     end
 
     // ----------------------- stage 4 - final gradient computation: |gradient_x| + |gradient_y|
@@ -104,11 +110,13 @@ module sobel_filter #(
     logic                   gradient_valid = 0;
 
     always_ff @(posedge clk) begin
-        gradient <= abs_gradient_x + abs_gradient_y;
-        gradient_valid <= data_valid_chain[SUMMATION_PIPELINE_DEPTH];
+        if(m_axis_tready) begin
+            gradient <= abs_gradient_x + abs_gradient_y;
+            gradient_valid <= data_valid_chain[SUMMATION_PIPELINE_DEPTH];
+        end
     end
 
     assign m_axis_tvalid = gradient_valid;
-    assign m_axis_tdata = gradient[DATA_W - 1 -: DATA_W];
+    assign m_axis_tdata = gradient > 255 ? 255 : gradient[DATA_W - 1 -: DATA_W];
 
 endmodule: sobel_filter

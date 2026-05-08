@@ -1,4 +1,6 @@
 import argparse
+import random
+
 import numpy as np
 import cv2
 
@@ -44,11 +46,12 @@ def to_binarray(x, bitwidth, folding=8, reverse_endian=True, reverse_inner=False
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Convert a numpy array of NCHW shape into a binfile.')
-    parser.add_argument('--dummy_shape', help='generate a dummy tensor of given shape in N C H W format', nargs=3, type=int, default=[1, 3, 720, 1280])
+    parser.add_argument('--dummy_shape', help='generate a dummy tensor of given shape in N C H W format', nargs=4, type=int, default=None)
     parser.add_argument('--inputfile', help='name(s) of input npy file(s) (i.e. "input.npy")', nargs="*", type=str, default=["example_input.npy"])
     args = parser.parse_args()
 
     IMG_FORMATS = ["png", "jpg", "bmp", "ppm"]
+    output_file = "binarray.bin"
 
     for filename in args.inputfile:
         if args.dummy_shape is not None:
@@ -63,15 +66,13 @@ if __name__ == "__main__":
                 for c in range(C):
                     for h in range(H):
                         for w in range(W):
-                            array[n, c, h, w] = val
-                            if val == maxval:
-                                val = 0
-                            else:
-                                val += 1
+                            array[n, c, h, w] = random.randint(0, 255)
+            output_file = "bytearray_dummy.bin"
+            np.save("dummy.npy", array)
         elif filename.split(".")[-1] in IMG_FORMATS:
             array = cv2.imread(filename)
             array = array[:, :, [2, 1, 0]] # to RGB
             array = np.expand_dims(array.transpose(2, 0, 1), axis=0) # to NCHW
         else:
             array = np.load(filename)
-        to_binarray(array, bitwidth=8, folding=1)
+        to_binarray(array, bitwidth=8, folding=1, outpath=output_file)

@@ -5,6 +5,10 @@ img = cv2.imread("testimg.png")
 img = img[:, :, [2, 1, 0]]
 img = img[:, :, 0]
 
+img = np.load("dummy.npy")
+img = img[0, 0]
+print(img.shape)
+
 kernelx = np.array([[-1, 0, 1],
                     [-2, 0, 2],
                     [-1, 0, 1]])
@@ -30,6 +34,7 @@ for row in range(1, img.shape[0] - 1):
         grady[row - 1, col - 1] = gy
 
 grad = np.abs(gradx) + np.abs(grady)
-cv2.imshow("grad", (grad/np.max(grad) * 255).astype(np.uint8))
+grad = np.clip(grad, 0, 255)
+cv2.imshow("grad", grad.astype(np.uint8))
 cv2.waitKey(0)
 cv2.destroyAllWindows()

@@ -1,6 +1,6 @@
 module shift_register #(
     parameter WIDTH = 8,
-    parameter DELAY = 128000
+    parameter DELAY = 1280
 )
 (
     input  logic clk,

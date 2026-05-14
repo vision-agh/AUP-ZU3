@@ -43,6 +43,7 @@ module sobel_filter_tb;
 
     logic [DATA_W - 1 : 0] sobel_filter_m_axis_tdata;
     logic sobel_filter_m_axis_tvalid;
+    logic sobel_filter_m_axis_tlast;
     logic sobel_filter_m_axis_tready;
 
     // send only R channel to the sobel_filter
@@ -52,7 +53,7 @@ module sobel_filter_tb;
     ) dut (
         .clk, .resetn,
         .s_axis_tdata(features_m_axis_tdata[packet_width - 1 -: DATA_W]), .s_axis_tvalid(features_m_axis_tvalid), .s_axis_tready(features_m_axis_tready),
-        .m_axis_tdata(sobel_filter_m_axis_tdata), .m_axis_tvalid(sobel_filter_m_axis_tvalid), .m_axis_tready(sobel_filter_m_axis_tready)
+        .m_axis_tdata(sobel_filter_m_axis_tdata), .m_axis_tvalid(sobel_filter_m_axis_tvalid), .m_axis_tlast(sobel_filter_m_axis_tlast), .m_axis_tready(sobel_filter_m_axis_tready)
     );
 
     initial begin

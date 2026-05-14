@@ -13,6 +13,7 @@ module sobel_filter #(
 
     output  logic [DATA_W - 1 : 0]      m_axis_tdata,
     output  logic                       m_axis_tvalid,
+    output  logic                       m_axis_tlast,
     input   logic                       m_axis_tready
 );
 
@@ -24,6 +25,7 @@ module sobel_filter #(
     logic [DATA_W - 1 : 0]      context_m_axis_tdata [CONTEXT_H][CONTEXT_W];
     logic                       context_m_axis_tvalid;
     wire                        context_m_axis_tready = m_axis_tready;
+    logic                       context_m_axis_tlast;
 
     // ------------------ stage 1 - context generation
     swu #(
@@ -33,7 +35,7 @@ module sobel_filter #(
     ) context_generator (
         .clk, .resetn,
         .s_axis_tdata, .s_axis_tvalid, .s_axis_tready,
-        .m_axis_tdata(context_m_axis_tdata), .m_axis_tvalid(context_m_axis_tvalid), .m_axis_tready(context_m_axis_tready)
+        .m_axis_tdata(context_m_axis_tdata), .m_axis_tvalid(context_m_axis_tvalid), .m_axis_tready(context_m_axis_tready), .m_axis_tlast(context_m_axis_tlast)
     );
 
     // ------------------- stage 2 - kernel elementwise multiplication
@@ -71,6 +73,7 @@ module sobel_filter #(
     logic signed [GRAD_W - 1 : 0] gradient_x;
     logic signed [GRAD_W - 1 : 0] gradient_y;
     logic [1 : SUMMATION_PIPELINE_DEPTH] data_valid_chain = 0;
+    logic [1 : SUMMATION_PIPELINE_DEPTH] data_last_chain = 0;
 
     always_ff @(posedge clk) begin
         if(!resetn) begin
@@ -98,8 +101,9 @@ module sobel_filter #(
             gradient_x <= summation_x_stage2[0] + summation_x_stage2[1];
             gradient_y <= summation_y_stage2[0] + summation_y_stage2[1];
 
-            // delay valid signal
+            // delay valid/last signals
             data_valid_chain <= {context_m_axis_tvalid, data_valid_chain[1 : SUMMATION_PIPELINE_DEPTH - 1]};
+            data_last_chain <= {context_m_axis_tlast, data_last_chain[1 : SUMMATION_PIPELINE_DEPTH - 1]};
         end
     end
 
@@ -108,15 +112,18 @@ module sobel_filter #(
     wire [GRAD_W : 0]       abs_gradient_y = gradient_y < 0 ? -gradient_y : gradient_y;
     logic [GRAD_W + 1 : 0]  gradient;
     logic                   gradient_valid = 0;
+    logic                   gradient_last = 0;
 
     always_ff @(posedge clk) begin
         if(m_axis_tready) begin
             gradient <= abs_gradient_x + abs_gradient_y;
             gradient_valid <= data_valid_chain[SUMMATION_PIPELINE_DEPTH];
+            gradient_last <= data_last_chain[SUMMATION_PIPELINE_DEPTH];
         end
     end
 
     assign m_axis_tvalid = gradient_valid;
+    assign m_axis_tlast = gradient_last;
     assign m_axis_tdata = gradient > 255 ? 255 : gradient[DATA_W - 1 -: DATA_W];
 
 endmodule: sobel_filter

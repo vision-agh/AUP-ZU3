@@ -6,7 +6,7 @@ set design_name "base"
 
 # open block design
 #if {[string match "" [current_project]]} {
-open_project ./${overlay_name}/${overlay_name}.xpr
+# open_project ./${overlay_name}/${overlay_name}.xpr
 #}
 
 open_bd_design ./${overlay_name}/${overlay_name}.srcs/sources_1/bd/${design_name}/${design_name}.bd

@@ -10,6 +10,6 @@ update_compile_order -fileset sim_1
 
 set_property top swu_tb [get_filesets sim_1]
 set_property xsim.simulate.log_all_signals {true} [get_filesets sim_1]
-set_property xsim.simulate.runtime {100us} [get_filesets sim_1]
+set_property xsim.simulate.runtime {10000us} [get_filesets sim_1]
 
 launch_simulation

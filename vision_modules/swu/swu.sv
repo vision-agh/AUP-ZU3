@@ -68,7 +68,7 @@ module swu #(
                 if(x_cnt == W - 1)
                     y_cnt <= (y_cnt == H - 1) ? 0 : y_cnt + 1;
 
-                if(x_cnt >= (WINDOW_W - 1) && x_cnt <= (W - 1) && y_cnt >= (WINDOW_H - 1) && y_cnt <= (H - 1)) begin
+                if(x_cnt >= (WINDOW_W - 1) && y_cnt >= (WINDOW_H - 1)) begin
                     Vld <= 1;
                     if(x_cnt == (W - 1) && y_cnt == (H - 1))
                         Lst <= 1;
@@ -78,8 +78,7 @@ module swu #(
                 else
                     Vld <= 0;
             end
-
-            if(!s_axis_tvalid && m_axis_tready)
+            else if(m_axis_tready)
                 Vld <= 0;
         end
     end
@@ -90,7 +89,7 @@ module swu #(
             assign m_axis_tdata[row][col] = window[WINDOW_H - 1 - row][WINDOW_W - 1 - col];
         end
     end
-    assign s_axis_tready = m_axis_tready;
+    assign s_axis_tready = !Vld || m_axis_tready;
     assign m_axis_tvalid = Vld;
     assign m_axis_tlast = Vld && Lst;
 

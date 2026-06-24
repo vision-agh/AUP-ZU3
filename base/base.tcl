@@ -780,3 +780,17 @@ proc create_root_design { parentCell } {
 
 create_root_design ""
 
+# Add top wrapper and xdc files
+make_wrapper -files [get_files ./${design_name}/${design_name}.srcs/sources_1/bd/${design_name}/${design_name}.bd] -top
+add_files -norecurse ./${design_name}/${design_name}.srcs/sources_1/bd/${design_name}/hdl/${design_name}_wrapper.v
+set_property top ${design_name}_wrapper [current_fileset]
+import_files -fileset constrs_1 -norecurse ./constraints/${design_name}.xdc
+update_compile_order -fileset sources_1
+
+# set platform properties
+set_property platform.default_output_type "sd_card" [current_project]
+set_property platform.design_intent.embedded "true" [current_project]
+set_property platform.design_intent.server_managed "false" [current_project]
+set_property platform.design_intent.external_host "false" [current_project]
+set_property platform.design_intent.datacenter "false" [current_project]
+

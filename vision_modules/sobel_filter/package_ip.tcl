@@ -12,3 +12,7 @@ set_property file_type {SystemVerilog} [get_files -of_objects [get_filesets sour
 update_compile_order -fileset sources_1
 set_property top sobel_filter [current_fileset]
 ipx::package_project -root_dir ./ip_repo -vendor user.org -library user -taxonomy /UserIP -import_files
+ipx::create_xgui_files [ipx::current_core]
+ipx::update_checksums [ipx::current_core]
+ipx::check_integrity [ipx::current_core]
+ipx::save_core [ipx::current_core]

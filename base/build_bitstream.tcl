@@ -1,8 +1,8 @@
 # Copyright (C) 2025 Advanced Micro Devices, Inc.
 # SPDX-License-Identifier: BSD-3-Clause
 
-set overlay_name "base"
-set design_name "base"
+set overlay_name "base_clean"
+set design_name "base_clean"
 
 # open block design
 #if {[string match "" [current_project]]} {
